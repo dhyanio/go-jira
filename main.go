@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	cons "karan/pkg/constant"
+	cons "<project>/pkg/constant"
 	"net/http"
 )
 
