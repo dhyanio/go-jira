@@ -1,66 +1,106 @@
-package main
+package util
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	cons "karan/pkg/constant"
 	"net/http"
 )
 
-// Golang Program to Jira Issue Creation - Dhyanio
-
-type zero struct {
-	Fields first `json:"fields"`
+type createIssue struct {
+	Fields fields `json:"fields"`
 }
-type first struct {
-	Project     second `json:"project"`
+type fields struct {
+	Project     key    `json:"project"`
 	Summary     string `json:"summary"`
 	Description string `json:"description"`
-	Issuetype   third  `json:"issuetype"`
+	Issuetype   name   `json:"issuetype"`
 }
-type second struct {
+
+type id struct {
+	Id string `json:"id"`
+}
+type key struct {
 	Key string `json:"key"`
 }
-type third struct {
+type name struct {
 	Name string `json:"name"`
 }
 
-func main() {
-	var jsonData zero
-	jsonData = zero{
-		Fields: first{
-			Project: second{
-				Key: "DEV",
+type updateIssue struct {
+	Update update `json:"update"`
+}
+
+type assignee struct {
+	Set id `json:"set"`
+}
+type update struct {
+	Assignee []assignee `json:"assignee"`
+}
+
+func CreateIssue(summary, description, issuetype string) ([]byte, error) {
+	var jsonData = createIssue{
+		Fields: fields{
+			Project: key{
+				Key: cons.JiraProjectId,
 			},
-			Summary:     "Issue from Golang Program",
-			Description: "This issue is created from golang Jira rest API Client with basic-auth using Jira secret token",
-			Issuetype: third{
-				Name: "Bug",
+			Summary:     summary,
+			Description: description,
+			Issuetype: name{
+				Name: issuetype,
 			},
 		},
 	}
 	mainJSON, err := json.MarshalIndent(jsonData, "", " ")
 	if err != nil {
-		fmt.Printf("error is: %s", err)
+		return nil, err
 	}
-	fmt.Println(string(mainJSON))
+	res, err := postJira("POST", cons.JiraBaseUrl, mainJSON)
 
-	const (
-		passWD   = "token"
-		baseURL  = "baseurl"
-		userNAME = "username"
-	)
-	request, _ := http.NewRequest("POST", baseURL, bytes.NewBuffer(mainJSON))
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func UpdateIssue(ticketId string) ([]byte, error) {
+	var updateIssueJson = updateIssue{
+		Update: update{
+			Assignee: []assignee{
+				{
+					Set: id{
+						Id: cons.JiraAssignee,
+					},
+				},
+			},
+		},
+	}
+	mainJSON, errJson := json.MarshalIndent(updateIssueJson, "", " ")
+	if errJson != nil {
+		return nil, errJson
+	}
+	url := cons.JiraBaseUrl + "/" + ticketId
+	_, err := postJira("PUT", url, mainJSON)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func postJira(method, url string, postBody []byte) ([]byte, error) {
+	request, _ := http.NewRequest(method, url, bytes.NewBuffer(postBody)) //url: https://<yourjira>/rest/api/2/issue
 	request.Header.Set("Content-Type", "application/json")
-	request.SetBasicAuth(userNAME, passWD)
+	request.SetBasicAuth(cons.JiraUsername, cons.JiraToken)
 
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
 		fmt.Printf("The Http request with error %s\n", err)
-	} else {
-		data, _ := ioutil.ReadAll(response.Body)
-		fmt.Println(string(data))
+		return nil, err
 	}
+	data, _ := ioutil.ReadAll(response.Body)
+
+	return data, nil
 }
