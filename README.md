@@ -6,7 +6,15 @@
 - Update existing jira issue
 
 ```golang
-  jiraRes, err := jiraUtil.CreateIssue(summary, resdes, "Task")
+package main
+
+import (
+	jiraUtil "github.com/dhyanio/go-jira"
+)
+
+func main() {
+  // Create Jira Issue
+	jiraRes, err := jiraUtil.CreateIssue(summary, resdes, "Task")
 	if err != nil {
 		return "", err
 	}
@@ -23,4 +31,7 @@
 	if updateIssueErr != nil {
 		return "", updateIssueErr
 	}
+}
+
+  
 ```
