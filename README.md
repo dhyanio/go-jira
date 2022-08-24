@@ -20,7 +20,7 @@ func main() {
 	}
   
   // Parse into JSON
-	jiraResJson, err := util.ParseEvent(string(jiraRes))
+	jiraResJson, err := jiraUtil.ParseEvent(string(jiraRes))
 	if err != nil {
 		return "", err
 	}
