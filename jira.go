@@ -104,3 +104,9 @@ func postJira(method, url string, postBody []byte) ([]byte, error) {
 
 	return data, nil
 }
+
+func ParseEvent(body string) (map[string]interface{}, error) {
+	var eventJson map[string]interface{}
+	json.Unmarshal([]byte(body), &eventJson)
+	return eventJson, nil
+}
